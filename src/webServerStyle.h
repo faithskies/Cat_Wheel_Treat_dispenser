@@ -277,7 +277,6 @@ const char AP_CONFIG_PAGE[] = R"(
 
 String build_main_page_body(bool mqtt_conn_status, int hallEffectCount, int hallEffectRunDistanceMultiplier, int distanceThreshold, int totalDistance, int totalTreatsDispensed, bool outOfTreats, String mqttserver, int mqttport, String mqttuser, String mqttpass, String mqttprefix, bool mqttenabled)
 {
-
     return String(
 R"(<!DOCTYPE html>
     <html>
@@ -413,8 +412,12 @@ R"(<!DOCTYPE html>
             <!-- Status Section at Top -->
             <div class="status-message status-info" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Current Distance:</span>
+                    <span><strong>)") + String((hallEffectCount * hallEffectRunDistanceMultiplier)) + "/" + String(distanceThreshold ) + R"( CentiMeters</strong></span>
+                </div>
+                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                     <span>Current Progress:</span>
-                    <span><strong>)") + String((hallEffectCount * hallEffectRunDistanceMultiplier)/100) + "/" + String(distanceThreshold / 100) + R"( Meters</strong></span>
+                    <span><strong>)" + String((hallEffectCount * hallEffectRunDistanceMultiplier)/100) + "/" + String(distanceThreshold / 100) + R"( Meters</strong></span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                     <span>Total Distance:</span>

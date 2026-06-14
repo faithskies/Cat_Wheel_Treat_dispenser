@@ -11,7 +11,7 @@
 // Other things I expect to possibly be user configurable if oneFastCat comes out with different wheels
 int hallEffectRunDistanceMultiplier = 22; // find the circumferance of your wheel in cm, then divide by the number of magnets you have installed.
 int DEBOUNCE_TIME_HALL = 0;               // if you notice bouncing on wheel pos reads, increase this slowly. too high of a value will ignore rotations if your cat is sanic speed.
-bool DEBUG_DIST = false;
+bool DEBUG_DIST = true;
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -195,12 +195,12 @@ void setup()
       ;
   }
 
-  if (pdPASS != xTaskCreatePinnedToCore(mqttServerTask, "mqttServerTask", 8192, NULL, 1, &mqttTaskHandle, 1))
-  {
-    Serial.println("Failed to create webserver task!");
-    while (1)
-      ;
-  }
+  // if (pdPASS != xTaskCreatePinnedToCore(mqttServerTask, "mqttServerTask", 8192, NULL, 1, &mqttTaskHandle, 1))
+  // {
+  //   Serial.println("Failed to create webserver task!");
+  //   while (1)
+  //     ;
+  // }
 
   if (pdPASS != xTaskCreatePinnedToCore(saveStatisticsTask, "saveStatistics", 1024, NULL, 1, NULL, 1))
   {
@@ -393,48 +393,48 @@ void webServerTask(void *pvParameters)
   }
 }
 
-void mqttServerTask(void *parameter)
-{
-  uint32_t lastMqttPublishTime = 0;
-  int mqttPublishInterval = (1000 * 60 * 5); // every 5 minutes
+// void mqttServerTask(void *parameter)
+// {
+//   uint32_t lastMqttPublishTime = 0;
+//   int mqttPublishInterval = (1000 * 60 * 5); // every 5 minutes
 
-  while (1)
-  {
-    while (mqttConf.mqttEnabled && networkState == NetworkState::CONNECTED)
-    {
+//   while (1)
+//   {
+//     while (mqttConf.mqttEnabled && networkState == NetworkState::CONNECTED)
+//     {
 
-      // Publish usage statistics via MQTT
-      if (mqttClient.connected() && (millis() - lastMqttPublishTime >= mqttPublishInterval))
-      {
-        mqttPublishUsageStats();
-        lastMqttPublishTime = millis();
-      }
+//       // Publish usage statistics via MQTT
+//       if (mqttClient.connected() && (millis() - lastMqttPublishTime >= mqttPublishInterval))
+//       {
+//         mqttPublishUsageStats();
+//         lastMqttPublishTime = millis();
+//       }
 
-      // Reconnect to MQTT if disconnected
-      if (!mqttClient.connected())
-      {
-        Serial.print("[mqtt] setting mqtt server host to: ");
-        Serial.println(mqttConf.server);
+//       // Reconnect to MQTT if disconnected
+//       if (!mqttClient.connected())
+//       {
+//         Serial.print("[mqtt] setting mqtt server host to: ");
+//         Serial.println(mqttConf.server);
 
-        mqttClient.setServer(mqttConf.server.c_str(), mqttConf.port);
-        mqttReconnect();
-      }
-      else
-      {
-        mqttClient.loop();
-      }
-    }
-    Serial.println("[mqtt] - waiting to be enabled...");
-    vTaskDelay(5000 / portTICK_PERIOD_MS); // Delay for 5 seconds
-  }
-}
+//         mqttClient.setServer(mqttConf.server.c_str(), mqttConf.port);
+//         mqttReconnect();
+//       }
+//       else
+//       {
+//         mqttClient.loop();
+//       }
+//     }
+//     Serial.println("[mqtt] - waiting to be enabled...");
+//     vTaskDelay(5000 / portTICK_PERIOD_MS); // Delay for 5 seconds
+//   }
+// }
 
 ////////////////////////
 ///   Meat Space    ///
 //////////////////////
 void dispenseTreat()
 {
-  Serial.println("[main-dispenseTreat()] - dispensing treat");
+  Serial.println("[main][dispenseTreat()] - dispensing treat");
 
   digitalWrite(hopperLightBreakSensorLEDPin, HIGH);
   digitalWrite(dispenseLightBreakSensorLEDPin, HIGH);
@@ -461,17 +461,17 @@ void dispenseTreat()
     {
       if (!outOfTreats_hopper)
       {
-        Serial.print("[main] hopper out of treats! - accumulatedDispensingTimeWithoutHopperTreat_ms  > 5000");
+        Serial.print("[main][dispenseTreat] hopper out of treats! - accumulatedDispensingTimeWithoutHopperTreat_ms  > 5000");
         outOfTreats_hopper = true;
       }
     }
 
     // If the threshold of 30 seconds for dispensing a treat is exceeded, set the error flag and give up.
-    if (looptime - treatDispenseStartTime > 30000)
+    if (looptime - treatDispenseStartTime > 200)
     {
       outOfTreats = true;
       dispensingTreat = false;
-      Serial.println("[main] fully out of treats! - threshold of 30 seconds for dispensing a treat is exceeded");
+      Serial.println("[main][dispenseTreat] threshold of 1 second for dispensing a treat is exceeded. treat dispense stopped");
       break;
     }
   }
